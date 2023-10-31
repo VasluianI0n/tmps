@@ -1,267 +1,157 @@
-# Laboratory Work Nr.2 Creational Design Patterns
+# Laboratory Work Nr.3 Structural Design Patterns
 ## Course: Tehnici si Mecanisme de Proiectare Software
 ## Author: Vasluian Ion
 ****
 ## Theory
-Creational design patterns are a category of design patterns that focus on the process of object creation. They provide a way to create objects in a flexible and controlled manner, while decoupling the client code from the specifics of object creation. Creational design patterns address common problems encountered in object creation, such as how to create objects with different initialization parameters, how to create objects based on certain conditions, or how to ensure that only a single instance of an object is created. There are several creational design patterns that have their own strengths and weaknesses. Each of it is best suited for solving specific problems related to object creation. By using creational design patterns, developers can improve the flexibility, maintainability, and scalability of their code.
+Structural design patterns explain how to assemble objects and classes into larger structures, while keeping these structures flexible and efficient. These patterns focus on, how the classes inherit from each other and how they are composed from other classes.
+There are following 7 types of structural design patterns:
 
-Some examples of this kind of design patterns are:
+1. Adapter Pattern -> Adapting an interface into another according to client expectation.
+2. Bridge Pattern -> Separating abstraction (interface) from implementation.
+3. Composite Pattern -> Allowing clients to operate on hierarchy of objects.
+4. Decorator Pattern -> Adding functionality to an object dynamically.
+5. Facade Pattern -> Providing an interface to a set of interfaces.
+6. Flyweight Pattern -> Reusing an object by sharing it.
+7. Proxy Pattern -> Representing another object.
 
-1. Singleton
-
-2. Builder
-    
-3. Prototype
-    
-4. Object Pooling
-    
-5. Factory Method
-    
-6. Abstract Factory
-****
-## Tasks
-1. Choose an OO programming language and a suitable IDE or Editor (No frameworks/libs/engines allowed).
-
-2. Select a domain area for the sample project.
-
-3. Define the main involved classes and think about what instantiation mechanisms are needed.
-
-4. Based on the previous point, implement at least 2 creational design patterns in your project.
+These design patterns are about organizing different classes and objects to form larger structures and provide new functionality.
 
 ****
 ## Implementation
 
-First of all I rearranged all my code into packages, adding bonusCalculator and employee packages, containing the classes that are related to it.
-For Singleton Design Pattern I made a class Configuration:
+First of all I had to add an Adapter Design Pattern, and I chose to make EmployeeAdapter:
 ```java
-public class Configuration {
+public class EmployeeAdapter {
+    private Employee employee;
 
-    private static Configuration instance;
-
-    private Configuration() {
-        // Private constructor to prevent instantiation
+    public EmployeeAdapter(Employee employee) {
+        this.employee = employee;
     }
 
-    public static Configuration getInstance() {
-        if (instance == null) {
-            instance = new Configuration();
-        }
-        return instance;
+    public String getFullName() {
+        return employee.getName();
     }
-
 }
 ```
-which ensures that only 1 instance of configuration is created.
+in this way you can get the name with the function from upper.
 
-For Builder Design Pattern I made EmployeeBuilder and ManagerBuilder, which ensures a flexible way to create Employee and Manager classes.
+For Bridge Structural Pattern I made BonusCalculatorBridge and changed the 2 BonusCalculators, adding a new default one as well: 
 ```java
-package employee;
+public interface BonusCalculatorBridge {
 
-public class EmployeeBuilder {
-    private String name;
-    private int id;
-    private double salary;
+    double calculateBonus();
 
-    public EmployeeBuilder setName(String name) {
-        this.name = name;
-        return this;
-    }
+}
 
-    public EmployeeBuilder setId(int id) {
-        this.id = id;
-        return this;
-    }
+import employee.Employee;
 
-    public EmployeeBuilder setSalary(double salary) {
-        this.salary = salary;
-        return this;
-    }
-
-    public Employee build() {
-        return new Employee(name, id, salary);
+public class EmployeeBonusCalculator implements BonusCalculator{
+    @Override
+    public double calculateBonus(Employee employee) {
+        return employee.getSalary() * 0.1;
     }
 }
 
-package employee;
+import employee.Employee;
 
-public class ManagerBuilder {
-    private String name;
-    private int id;
-    private double salary;
-    private String department;
+public class SeniorEmployeeBonusCalculator implements BonusCalculatorBridge {
+    private Employee employee;
 
-    public ManagerBuilder setName(String name) {
-        this.name = name;
-        return this;
+    public SeniorEmployeeBonusCalculator(Employee employee) {
+        this.employee = employee;
     }
 
-    public ManagerBuilder setId(int id) {
-        this.id = id;
-        return this;
+    @Override
+    public double calculateBonus() {
+        return employee.calculateBonus() * 2;
+    }
+    public double calculateBonus(Employee employee) {
+        return employee.getSalary() * 0.2; // Adjust the bonus calculation as needed
+    }
+}
+
+import employee.Employee;
+
+public class StandardBonusCalculator implements BonusCalculatorBridge{
+    private Employee employee;
+
+    public StandardBonusCalculator(Employee employee) {
+        this.employee = employee;
     }
 
-    public ManagerBuilder setSalary(double salary) {
-        this.salary = salary;
-        return this;
+    @Override
+    public double calculateBonus() {
+        return employee.calculateBonus();
     }
 
-    public ManagerBuilder setDepartment(String department){
-        this.department = department;
-        return this;
-    }
-
-    public Manager build() {
-        return new Manager(name, id, salary, department);
+    public double calculateBonus(Employee employee) {
+        return employee.getSalary() * 0.1;
     }
 }
 ```
 
-For the Prototype Design Pattern I made a EmployeePrototype class, which allows me to clone Employee objects:
+For the Facade Structural Pattern I made a EmployeeFacade class, which hides the complexity of calculating everything, leaving just the functions to use:
 
 ```java
-package employee;
-
-public class EmployeePrototype {
-    private Employee employeePrototype;
-
-    public EmployeePrototype(Employee employee) {
-        this.employeePrototype = employee;
-    }
-
-    public Employee cloneEmployee() {
-        return new Employee(employeePrototype.getName(), employeePrototype.getId(), employeePrototype.getSalary());
-    }
-
-}
-```
-
-Object Pooling Design Pattern creates a pool of objects for their reusage later. So I made a EmployeePool of Employee objects:
-```java
-package employee;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class EmployeePool {
-    private List<Employee> pool;
-    private int maxPoolSize;
-
-    public EmployeePool(int maxPoolSize) {
-        this.maxPoolSize = maxPoolSize;
-        this.pool = new ArrayList<>();
-    }
-
-    public Employee acquire() {
-        if (pool.isEmpty()) {
-            return new EmployeeBuilder()
-                    .setName("New Employee")
-                    .setId(pool.size() + 1)
-                    .setSalary(0.0)
-                    .build();
-        } else {
-            return pool.remove(0);
-        }
-    }
-
-    public void release(Employee employee) {
-        if (pool.size() < maxPoolSize) {
-            pool.add(employee);
-        }
-    }
-}
-```
-For Factory Method Design I made 1 interface and 1 class (EmployeeFactory and ManagerFactory), which is used to create Employee objects:
-```java
-package employee;
-
-public interface EmployeeFactory {
-    Employee createEmployee();
-}
-
-package employee;
-
-public class ManagerFactory implements EmployeeFactory{
-
-        public Employee createEmployee() {
-            return new ManagerBuilder()
-                    .setName("New Manager")
-                    .setId(0)
-                    .setSalary(0.0)
-                    .setDepartment("New Department")
-                    .build();
-        }
-
-}
-```
-
-And finally for Abstract Factory Design Pattern I made also 1 interface and 1 class (AbstractEmployeeFactory and ManagerAbstractFactory), which is used to create both Employee Objects and BonusCalculator objects as well:
-```java
-package employee;
-
 import bonusCalculator.BonusCalculator;
 
-public interface AbstractEmployeeFactory {
-    Employee createEmployee();
-    BonusCalculator createBonusCalculator();
-}
+public class EmployeeFacade {
+    private Employee employee;
+    private BonusCalculator bonusCalculator;
 
-package employee;
-
-import bonusCalculator.BonusCalculator;
-import bonusCalculator.SeniorEmployeeBonusCalculator;
-
-public class ManagerAbstractFactory implements AbstractEmployeeFactory{
-    public Employee createEmployee() {
-        return new ManagerBuilder()
-                .setName("New Manager")
-                .setId(0)
-                .setSalary(0.0)
-                .setDepartment("New Department")
-                .build();
+    public EmployeeFacade(String name, int id, double salary, BonusCalculator bonusCalculator) {
+        this.employee = new Employee(name, id, salary);
+        this.bonusCalculator = bonusCalculator;
     }
 
-    public BonusCalculator createBonusCalculator() {
-        return new SeniorEmployeeBonusCalculator();
+    public double calculateBonus() {
+        return bonusCalculator.calculateBonus(employee);
+    }
+}
+```
+
+Proxy Design Pattern creates proxy for the Workable interface. It delegates the work to the real employee object but allows for additional control or behavior.
+```java
+public class EmployeeProxy implements Workable{
+    private Employee employee;
+
+    public EmployeeProxy(String name, int id, double salary) {
+        // Delay the creation of the real employee object
+        employee = new Employee(name, id, salary);
+    }
+
+    @Override
+    public void work() {
+        // Delegate the work to the real employee
+        employee.work();
     }
 }
 ```
 
 In the TestCase.java file I added verification for the design patterns:
 ```java
- //CREATIONAL DESIGN PATTERNS
+ public static void main(String[] args) {
 
-        // Singleton example
-        Configuration config1 = Configuration.getInstance();
-        Configuration config2 = Configuration.getInstance();
-        System.out.println(config1 == config2); // Should print "true"
+        // Adapter example
+        Employee employee = new Employee("John Doe", 1, 50000.0);
+        EmployeeAdapter adapter = new EmployeeAdapter(employee);
+        System.out.println("Full Name: " + adapter.getFullName());
 
-        // Builder example
-        Employee employeeb = new EmployeeBuilder()
-                .setName("John")
-                .setId(1)
-                .setSalary(50000.0)
-                .build();
+        // Bridge example
+        BonusCalculatorBridge standardCalculator = new StandardBonusCalculator(employee);
+        BonusCalculatorBridge seniorCalculator = new SeniorEmployeeBonusCalculator(employee);
+        System.out.println("Standard Bonus: " + standardCalculator.calculateBonus());
+        System.out.println("Senior Bonus: " + seniorCalculator.calculateBonus());
 
-        // Prototype example
-        EmployeePrototype prototype = new EmployeePrototype(employeeb);
-        Employee clone = prototype.cloneEmployee();
+        // Facade example
+        BonusCalculator standardBonusCalculator = new EmployeeBonusCalculator();
+        EmployeeFacade facade = new EmployeeFacade("Alice Smith", 2, 80000.0, standardBonusCalculator);
+        double bonus = facade.calculateBonus();
+        System.out.println("Employee Bonus: " + bonus);
 
-        // Object Pooling example
-        EmployeePool employeePool = new EmployeePool(3);
-        Employee emp1 = employeePool.acquire();
-        Employee emp2 = employeePool.acquire();
-        Employee emp3 = employeePool.acquire();
-        employeePool.release(emp1);
-        employeePool.release(emp2);
-
-        // Factory Method example
-        EmployeeFactory managerFactory = new ManagerFactory();
-        Employee managerF = managerFactory.createEmployee();
-
-        // Abstract Factory example
-        AbstractEmployeeFactory managerAbstractFactory = new ManagerAbstractFactory();
-        Employee abstractManager = managerAbstractFactory.createEmployee();
-        BonusCalculator bonusCalculator = managerAbstractFactory.createBonusCalculator();
-    }
+        // Proxy example
+        EmployeeProxy proxy = new EmployeeProxy("Bob", 3, 60000.0);
+        proxy.work();
+        }
 ```
 ****
