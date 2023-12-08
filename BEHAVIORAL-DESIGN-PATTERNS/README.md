@@ -1,4 +1,4 @@
-# Laboratory Work Nr.3 Structural Design Patterns
+# Laboratory Work Nr.4 Behavioral Design Patterns
 ## Course: Tehnici si Mecanisme de Proiectare Software
 ## Author: Vasluian Ion
 ****
